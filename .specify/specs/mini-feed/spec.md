@@ -1,116 +1,116 @@
 # Specification — Ivory Mini Feed (React Native + Backend)
 
-## Visão Geral
+## Overview
 
-Mini aplicação composta por uma API backend (Node.js + TypeScript) e um app mobile (React Native + TypeScript com Expo) realmente conectado ao backend. Funcionalidades: login mock, feed paginada por cursor, like/unlike idempotente, comentários e estados de UI (loading/error/empty/pending). Dados mantidos em memória com seed determinístico.
+Mini application composed of a backend API (Node.js + TypeScript) and a mobile app (React Native + TypeScript with Expo) actually connected to the backend. Features: mock login, cursor-paginated feed, idempotent like/unlike, comments, and UI states (loading/error/empty/pending). Data kept in memory with a deterministic seed.
 
-Fonte dos requisitos: `01_Test_Tecnico_Candidato_Mini_Feed_ReactNative.pdf`, `03_Guida_Setup_E_Consegna_ReactNative.pdf` e `Checklist_Consegna_ReactNative_Candidato.md` (Ivory, 10/06/2026).
+Requirement sources: `01_Test_Tecnico_Candidato_Mini_Feed_ReactNative.pdf`, `03_Guida_Setup_E_Consegna_ReactNative.pdf` and `Checklist_Consegna_ReactNative_Candidato.md` (Ivory, 2026-06-10).
 
-## Requisitos Funcionais — Backend
+## Functional Requirements — Backend
 
-### RF01 — Login mock — `POST /v1/auth/login`
-- Recebe `{ "email": string }`; e-mail deve ser válido (400 caso contrário).
-- Retorna `{ accessToken, user }`.
-- Token mock no formato `mock-token-<userId>` (compatível com os exemplos de curl da guia: `Bearer mock-token-user-1`).
-- Usuários seed: `ada@ivory.test` → `user-1`, `bruno@ivory.test` → `user-2`, `carla@ivory.test` → `user-3`. E-mails desconhecidos criam um novo usuário mock (login sempre funciona).
+### FR01 — Mock login — `POST /v1/auth/login`
+- Receives `{ "email": string }`; the email must be valid (400 otherwise).
+- Returns `{ accessToken, user }`.
+- Mock token in the format `mock-token-<userId>` (compatible with the guide's curl examples: `Bearer mock-token-user-1`).
+- Seed users: `ada@ivory.test` → `user-1`, `bruno@ivory.test` → `user-2`, `carla@ivory.test` → `user-3`. Unknown emails create a new mock user (login always works).
 
-### RF02 — Feed paginada — `GET /v1/feed?limit=3&cursor=...`
-- Lista de posts ordenada por `createdAt` decrescente (mais recente primeiro), desempate por `id`.
-- Cursor pagination: resposta `{ items, nextCursor }`; `nextCursor: null` na última página.
-- `limit` padrão 10, máximo 20 (400 se `limit` inválido; valores acima de 20 são rejeitados).
-- 400 se `cursor` malformado.
-- Cada item: `id`, `authorId`, `body`, `createdAt`, `likesCount`, `commentsCount`, `likedByMe`.
-- Autenticação opcional: com `Authorization: Bearer <token>` válido, `likedByMe` reflete o usuário; sem token, `likedByMe = false` (os curl de exemplo da guia chamam a feed sem header).
+### FR02 — Paginated feed — `GET /v1/feed?limit=3&cursor=...`
+- List of posts ordered by `createdAt` descending (newest first), tie-broken by `id`.
+- Cursor pagination: response `{ items, nextCursor }`; `nextCursor: null` on the last page.
+- Default `limit` 10, maximum 20 (400 for an invalid `limit`; values above 20 are rejected).
+- 400 for a malformed `cursor`.
+- Each item: `id`, `authorId`, `body`, `createdAt`, `likesCount`, `commentsCount`, `likedByMe`.
+- Optional authentication: with a valid `Authorization: Bearer <token>`, `likedByMe` reflects the user; without a token, `likedByMe = false` (the guide's curl examples call the feed without the header).
 
-### RF03 — Like — `POST /v1/posts/:postId/like` (protegido)
-- 401 sem token válido; 404 se o post não existe.
-- **Idempotente:** chamada dupla não duplica o like; `likesCount` permanece correto.
-- Retorna `{ postId, likedByMe: true, likesCount }`.
+### FR03 — Like — `POST /v1/posts/:postId/like` (protected)
+- 401 without a valid token; 404 when the post does not exist.
+- **Idempotent:** a double call does not duplicate the like; `likesCount` stays correct.
+- Returns `{ postId, likedByMe: true, likesCount }`.
 
-### RF04 — Unlike — `DELETE /v1/posts/:postId/like` (protegido)
-- 401 sem token válido; 404 se o post não existe.
-- **Idempotente:** chamada dupla permanece coerente (sem contador negativo).
-- Retorna `{ postId, likedByMe: false, likesCount }`.
+### FR04 — Unlike — `DELETE /v1/posts/:postId/like` (protected)
+- 401 without a valid token; 404 when the post does not exist.
+- **Idempotent:** a double call stays consistent (no negative counter).
+- Returns `{ postId, likedByMe: false, likesCount }`.
 
-### RF05 — Listar comentários — `GET /v1/posts/:postId/comments`
-- 404 se o post não existe.
-- Retorna `{ items, commentsCount }` ordenados por `createdAt` crescente.
+### FR05 — List comments — `GET /v1/posts/:postId/comments`
+- 404 when the post does not exist.
+- Returns `{ items, commentsCount }` ordered by `createdAt` ascending.
 
-### RF06 — Criar comentário — `POST /v1/posts/:postId/comments` (protegido)
-- 401 sem token válido; 404 se o post não existe.
-- Body `{ "body": string }`: não vazio (após trim) e máximo 500 caracteres — 400 caso contrário.
-- Retorna `{ comment, commentsCount }` (201).
+### FR06 — Create comment — `POST /v1/posts/:postId/comments` (protected)
+- 401 without a valid token; 404 when the post does not exist.
+- Body `{ "body": string }`: non-empty (after trim) and at most 500 characters — 400 otherwise.
+- Returns `{ comment, commentsCount }` (201).
 
-## Requisitos Funcionais — App React Native
+## Functional Requirements — React Native App
 
-### RF07 — Login mock
-- Input de e-mail + botão de login; chama `POST /v1/auth/login`.
-- Token salvo em AsyncStorage (restaurado ao reabrir o app); estado autenticado; logout limpa token e volta ao login.
-- Erros visíveis (e-mail inválido, falha de rede).
+### FR07 — Mock login
+- Email input + login button; calls `POST /v1/auth/login`.
+- Token stored in AsyncStorage (restored when reopening the app); authenticated state; logout clears the token and returns to login.
+- Visible errors (invalid email, network failure).
 
-### RF08 — Feed
-- Lista de posts exibindo `authorId`, `body`, data formatada, `likesCount`, `commentsCount`, `likedByMe`.
-- Botão/scroll "Load more" usando `nextCursor` (sem duplicar posts).
-- Pull-to-refresh recarrega a primeira página.
+### FR08 — Feed
+- List of posts showing `authorId`, `body`, formatted date, `likesCount`, `commentsCount`, `likedByMe`.
+- "Load more" button/scroll using `nextCursor` (no duplicated posts).
+- Pull-to-refresh reloads the first page.
 
-### RF09 — Like/unlike
-- Botão conectado ao backend com estado pending por post (previne duplo tap).
-- Extra implementado: optimistic update com rollback em caso de erro da API, com mensagem de erro visível.
+### FR09 — Like/unlike
+- Button connected to the backend with per-post pending state (prevents double tap).
+- Implemented extra: optimistic update with rollback on API error, with a visible error message.
 
-### RF10 — Comentários
-- Visualizar comentários de um post; criar comentário.
-- Após criar: lista e `commentsCount` atualizados.
-- Erro visível para comentário vazio e para falha da API.
+### FR10 — Comments
+- View a post's comments; create a comment.
+- After creating: list and `commentsCount` updated.
+- Visible error for an empty comment and for an API failure.
 
-### RF11 — Estados de UI
-- Loading do feed (spinner inicial), erro do feed (mensagem + retry), feed vazia (empty state), pending durante like e durante envio de comentário.
+### FR11 — UI states
+- Feed loading (initial spinner), feed error (message + retry), empty feed (empty state), pending during like and while sending a comment.
 
-## Requisitos Não-Funcionais
+## Non-Functional Requirements
 
-### RNF01 — Stack
+### NFR01 — Stack
 - Backend: Node.js 20+, TypeScript, Express, Zod, UUID. Dev: tsx, Vitest, Supertest.
-- Mobile: React Native + TypeScript via Expo (template blank-typescript), AsyncStorage, fetch nativo.
+- Mobile: React Native + TypeScript via Expo (blank-typescript template), AsyncStorage, native fetch.
 
-### RNF02 — Armazenamento
-- Dados em memória (Maps/arrays), sem banco externo. Seed determinístico: 3 usuários, 12 posts, comentários e likes iniciais.
+### NFR02 — Storage
+- In-memory data (Maps/arrays), no external database. Deterministic seed: 3 users, 12 posts, initial comments and likes.
 
-### RNF03 — URL do backend a partir do mobile
+### NFR03 — Backend URL from mobile
 - Android Emulator: `http://10.0.2.2:3000`
 - iOS Simulator (macOS): `http://localhost:3000`
-- Expo Go / device físico: `http://<IP-local-do-computador>:3000`
-- Configurável em um único ponto (`mobile/src/api/config.ts`).
+- Expo Go / physical device: `http://<your-computer-local-IP>:3000`
+- Configurable in a single place (`mobile/src/api/config.ts`).
 
-### RNF04 — Erros e segurança
-- Respostas de erro padronizadas `{ error: { code, message } }`; helmet + cors habilitados; sem segredos no repositório.
+### NFR04 — Errors and security
+- Standardized error responses `{ error: { code, message } }`; helmet + cors enabled; no secrets in the repository.
 
-### RNF05 — Testes
-- Backend: ≥ 5 testes automatizados (Vitest + Supertest) cobrindo login, paginação, idempotência de like/unlike, comentários e validações.
-- Mobile: ≥ 4 casos manuais documentados no README (login/feed, like/unlike, comentário, erro de comentário vazio).
+### NFR05 — Tests
+- Backend: ≥ 5 automated tests (Vitest + Supertest) covering login, pagination, like/unlike idempotency, comments and validation.
+- Mobile: ≥ 4 manual cases documented in the README (login/feed, like/unlike, comment, empty-comment error).
 
-### RNF06 — Entrega
-- README com: instalação, avvio backend, avvio app RN, URL do backend, testes, escolhas técnicas, melhorias e uso de AI/tools.
-- Sem `node_modules` e sem segredos; entrega em 24h.
+### NFR06 — Delivery
+- README with: installation, backend startup, RN app startup, backend URL, tests, technical choices, improvements and AI/tool usage.
+- No `node_modules` and no secrets; delivery within 24h.
 
 ## User Stories
 
 ### US01 — Login
-**Como** usuário, **quero** entrar com meu e-mail, **para** acessar a feed autenticado.
-- Com `ada@ivory.test` obtenho token e a feed carrega.
-- Token persiste ao reabrir o app; logout volta para a tela de login.
+**As** a user, **I want** to sign in with my email, **so that** I can access the feed authenticated.
+- With `ada@ivory.test` I get a token and the feed loads.
+- The token persists when reopening the app; logout returns to the login screen.
 
-### US02 — Navegar a feed
-**Como** usuário, **quero** ver os posts mais recentes e carregar mais, **para** acompanhar o conteúdo.
-- Primeira página carrega com spinner; "Load more" anexa a página seguinte sem duplicados; última página esconde o botão.
+### US02 — Browse the feed
+**As** a user, **I want** to see the newest posts and load more, **so that** I can follow the content.
+- First page loads with a spinner; "Load more" appends the next page with no duplicates; the last page hides the button.
 
-### US03 — Curtir/descurtir
-**Como** usuário, **quero** dar like/unlike em um post, **para** reagir ao conteúdo.
-- Tap atualiza UI e contagem imediatamente (optimistic); erro da API faz rollback e mostra mensagem; duplo tap não dispara requisição duplicada.
+### US03 — Like/unlike
+**As** a user, **I want** to like/unlike a post, **so that** I can react to the content.
+- A tap updates the UI and the count immediately (optimistic); an API error rolls back and shows a message; a double tap does not fire a duplicated request.
 
-### US04 — Comentar
-**Como** usuário, **quero** ler e criar comentários, **para** interagir com um post.
-- Criar comentário atualiza lista e `commentsCount`; comentário vazio mostra erro sem chamar a API.
+### US04 — Comment
+**As** a user, **I want** to read and create comments, **so that** I can interact with a post.
+- Creating a comment updates the list and `commentsCount`; an empty comment shows an error without calling the API.
 
-## Modelo de Dados (em memória)
+## Data Model (in memory)
 
 ```typescript
 interface User {
@@ -137,14 +137,14 @@ interface Comment {
 }
 ```
 
-## API REST
+## REST API
 
-| Método | Endpoint                       | Auth      | Descrição                                          |
+| Method | Endpoint                       | Auth      | Description                                          |
 |--------|--------------------------------|-----------|----------------------------------------------------|
-| POST   | /v1/auth/login                 | —         | Login mock; retorna `accessToken` e `user`          |
-| GET    | /v1/feed?limit=&cursor=        | opcional  | Feed paginada por cursor; `limit` máx 20            |
-| POST   | /v1/posts/:postId/like         | Bearer    | Like idempotente                                    |
-| DELETE | /v1/posts/:postId/like         | Bearer    | Unlike idempotente                                  |
-| GET    | /v1/posts/:postId/comments     | —         | Lista comentários; 404 se post inexistente          |
-| POST   | /v1/posts/:postId/comments     | Bearer    | Cria comentário (1..500 chars); retorna count       |
+| POST   | /v1/auth/login                 | —         | Mock login; returns `accessToken` and `user`        |
+| GET    | /v1/feed?limit=&cursor=        | optional  | Cursor-paginated feed; `limit` max 20               |
+| POST   | /v1/posts/:postId/like         | Bearer    | Idempotent like                                     |
+| DELETE | /v1/posts/:postId/like         | Bearer    | Idempotent unlike                                   |
+| GET    | /v1/posts/:postId/comments     | —         | Lists comments; 404 when the post does not exist    |
+| POST   | /v1/posts/:postId/comments     | Bearer    | Creates a comment (1..500 chars); returns the count |
 | GET    | /health                        | —         | Healthcheck                                         |

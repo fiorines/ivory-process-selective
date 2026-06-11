@@ -5,20 +5,20 @@ import type { LoginResponse } from '../types.js';
 
 const loginSchema = z.object({
   email: z
-    .string({ message: 'email é obrigatório.' })
+    .string({ message: 'email is required.' })
     .trim()
     .toLowerCase()
-    .email('email inválido.'),
+    .email('invalid email.'),
 });
 
 export const authRouter = Router();
 
-/** POST /v1/auth/login — login mock via e-mail; retorna accessToken + user. */
+/** POST /v1/auth/login — mock login via email; returns accessToken + user. */
 authRouter.post('/login', (req, res) => {
   const parsed = loginSchema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({
-      error: { code: 'INVALID_EMAIL', message: parsed.error.issues[0]?.message ?? 'email inválido.' },
+      error: { code: 'INVALID_EMAIL', message: parsed.error.issues[0]?.message ?? 'invalid email.' },
     });
     return;
   }

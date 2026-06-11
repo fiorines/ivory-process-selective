@@ -17,7 +17,7 @@ export interface Post {
   authorId: string;
   body: string;
   createdAt: string;
-  /** Likes como Set de userIds: add/delete são idempotentes por construção. */
+  /** Likes as a Set of userIds: add/delete are idempotent by construction. */
   likedBy: Set<string>;
   comments: Comment[];
 }

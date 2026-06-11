@@ -15,7 +15,7 @@ import type { FeedItem } from '../types';
 
 const PAGE_SIZE = 10;
 
-/** Concatena páginas deduplicando por id (evita duplicados no Load more). */
+/** Concatenates pages deduplicating by id (avoids duplicates on Load more). */
 function mergePosts(current: FeedItem[], incoming: FeedItem[]): FeedItem[] {
   const known = new Set(current.map((post) => post.id));
   return [...current, ...incoming.filter((post) => !known.has(post.id))];
@@ -45,7 +45,7 @@ export function FeedScreen() {
         setPosts(response.items);
         setNextCursor(response.nextCursor);
       } catch (err) {
-        setLoadError(err instanceof ApiError ? err.message : 'Erro ao carregar a feed.');
+        setLoadError(err instanceof ApiError ? err.message : 'Failed to load the feed.');
       } finally {
         setLoading(false);
         setRefreshing(false);
@@ -68,7 +68,7 @@ export function FeedScreen() {
       setPosts((current) => mergePosts(current, response.items));
       setNextCursor(response.nextCursor);
     } catch (err) {
-      setActionError(err instanceof ApiError ? err.message : 'Erro ao carregar mais posts.');
+      setActionError(err instanceof ApiError ? err.message : 'Failed to load more posts.');
     } finally {
       loadingMoreRef.current = false;
       setLoadingMore(false);
@@ -81,7 +81,7 @@ export function FeedScreen() {
     );
   }, []);
 
-  /** Like/unlike com optimistic update + rollback e pending por post (sem duplo tap). */
+  /** Like/unlike with optimistic update + rollback and per-post pending (no double tap). */
   const toggleLike = useCallback(
     async (post: FeedItem) => {
       if (!token || pendingLikes.has(post.id)) return;
@@ -100,12 +100,12 @@ export function FeedScreen() {
         const response = post.likedByMe
           ? await api.unlikePost(token, post.id)
           : await api.likePost(token, post.id);
-        // estado final autoritativo do backend
+        // authoritative final state from the backend
         applyLikeResult(response.postId, response.likedByMe, response.likesCount);
       } catch (err) {
-        // rollback do optimistic update
+        // rollback of the optimistic update
         applyLikeResult(post.id, previous.likedByMe, previous.likesCount);
-        setActionError(err instanceof ApiError ? err.message : 'Erro ao curtir o post.');
+        setActionError(err instanceof ApiError ? err.message : 'Failed to like the post.');
       } finally {
         setPendingLikes((current) => {
           const next = new Set(current);
@@ -131,7 +131,7 @@ export function FeedScreen() {
           {user && <Text style={styles.headerSubtitle}>{user.email}</Text>}
         </View>
         <TouchableOpacity style={styles.logoutButton} onPress={logout}>
-          <Text style={styles.logoutText}>Sair</Text>
+          <Text style={styles.logoutText}>Sign out</Text>
         </TouchableOpacity>
       </View>
 
@@ -144,7 +144,7 @@ export function FeedScreen() {
       {loading && (
         <View style={styles.centerBox}>
           <ActivityIndicator size="large" color="#60a5fa" />
-          <Text style={styles.mutedText}>Carregando feed…</Text>
+          <Text style={styles.mutedText}>Loading feed…</Text>
         </View>
       )}
 
@@ -152,7 +152,7 @@ export function FeedScreen() {
         <View style={styles.centerBox}>
           <Text style={styles.errorText}>{loadError}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={() => loadFirstPage('initial')}>
-            <Text style={styles.retryText}>Tentar novamente</Text>
+            <Text style={styles.retryText}>Try again</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -176,7 +176,7 @@ export function FeedScreen() {
           onEndReached={loadMore}
           ListEmptyComponent={
             <View style={styles.centerBox}>
-              <Text style={styles.mutedText}>A feed está vazia por enquanto.</Text>
+              <Text style={styles.mutedText}>The feed is empty for now.</Text>
             </View>
           }
           ListFooterComponent={
@@ -194,7 +194,7 @@ export function FeedScreen() {
                 )}
               </TouchableOpacity>
             ) : posts.length > 0 ? (
-              <Text style={styles.mutedText}>Você chegou ao fim da feed.</Text>
+              <Text style={styles.mutedText}>You have reached the end of the feed.</Text>
             ) : null
           }
         />

@@ -2,7 +2,7 @@
   "name": "ivory-mini-feed-backend",
   "version": "1.0.0",
   "private": true,
-  "description": "Backend API do teste tecnico Ivory - Mini Feed (Node.js + TypeScript + Express)",
+  "description": "Backend API for the Ivory technical test - Mini Feed (Node.js + TypeScript + Express)",
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",

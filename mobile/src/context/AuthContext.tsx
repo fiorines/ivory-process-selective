@@ -7,7 +7,7 @@ const TOKEN_STORAGE_KEY = '@ivory/accessToken';
 const USER_STORAGE_KEY = '@ivory/user';
 
 interface AuthContextValue {
-  /** true enquanto restaura a sessão salva no AsyncStorage (boot do app). */
+  /** true while restoring the saved session from AsyncStorage (app boot). */
   restoring: boolean;
   token: string | null;
   user: User | null;
@@ -34,7 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(JSON.parse(storedUser) as User);
         }
       } catch {
-        // sessão corrompida: segue deslogado
+        // corrupted session: continue logged out
       } finally {
         setRestoring(false);
       }
@@ -67,6 +67,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth(): AuthContextValue {
   const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth deve ser usado dentro de <AuthProvider>.');
+  if (!context) throw new Error('useAuth must be used inside <AuthProvider>.');
   return context;
 }

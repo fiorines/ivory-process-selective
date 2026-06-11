@@ -1,24 +1,24 @@
 # Ivory Mini Feed — React Native + Backend
 
-Teste técnico Ivory: mini aplicação com **backend API (Node.js + TypeScript + Express)** e **app mobile (React Native + TypeScript com Expo)** realmente conectado ao backend.
+Ivory technical test: mini application with a **backend API (Node.js + TypeScript + Express)** and a **mobile app (React Native + TypeScript with Expo)** actually connected to the backend.
 
-Funcionalidades: login mock, feed paginada por cursor, like/unlike idempotente, comentários e estados de UI (loading / error / empty / pending).
+Features: mock login, cursor-paginated feed, idempotent like/unlike, comments, and UI states (loading / error / empty / pending).
 
-## Estrutura
+## Structure
 
 ```
 ivory-process-seletive/
-├── backend/        # API Express + TypeScript (dados em memória)
-├── mobile/         # App Expo (blank-typescript)
-├── .specify/       # Artefatos SPEC-DRIVEN (constitution, spec, plan, tasks)
+├── backend/        # Express + TypeScript API (in-memory data)
+├── mobile/         # Expo app (blank-typescript)
+├── .specify/       # SPEC-DRIVEN artifacts (constitution, spec, plan, tasks)
 └── README.md
 ```
 
-> O projeto foi desenvolvido com a metodologia **spec-driven (GitHub spec-kit)**: requisitos, plano técnico e tarefas estão em `.specify/specs/mini-feed/`.
+> The project was developed with the **spec-driven methodology (GitHub spec-kit)**: requirements, technical plan and tasks live in `.specify/specs/mini-feed/`.
 
-## Instalação
+## Installation
 
-Pré-requisitos: **Node.js 20+** (testado com Node 26), npm, e **Expo Go** no celular ou um emulador Android / simulador iOS.
+Prerequisites: **Node.js 20+** (tested with Node 26), npm, and **Expo Go** on your phone or an Android emulator / iOS simulator.
 
 ```bash
 # Backend
@@ -30,53 +30,53 @@ cd ../mobile
 npm install
 ```
 
-## Avvio / Como rodar
+## How to run
 
-### 1. Backend (porta 3000)
+### 1. Backend (port 3000)
 
 ```bash
 cd backend
-npm run dev      # tsx watch (ou: npm start)
+npm run dev      # tsx watch (or: npm start)
 ```
 
-O servidor escuta em `0.0.0.0:3000` (acessível pelo emulador e por devices na rede local).
+The server listens on `0.0.0.0:3000` (reachable from the emulator and from devices on the local network).
 Healthcheck: `GET http://localhost:3000/health`.
 
-### 2. App React Native
+### 2. React Native app
 
-**Antes de abrir o app**, ajuste a URL do backend em [`mobile/src/api/config.ts`](mobile/src/api/config.ts):
+**Before opening the app**, adjust the backend URL in [`mobile/src/api/config.ts`](mobile/src/api/config.ts):
 
-| Ambiente                    | `API_BASE_URL`                          |
+| Environment                 | `API_BASE_URL`                          |
 |-----------------------------|------------------------------------------|
-| Android Emulator            | `http://10.0.2.2:3000` (padrão atual)    |
+| Android Emulator            | `http://10.0.2.2:3000` (current default) |
 | iOS Simulator (macOS)       | `http://localhost:3000`                  |
-| Expo Go / device físico     | `http://<IP-local-do-computador>:3000` (ex.: `http://192.168.1.50:3000` — descubra com `ipconfig`/`ifconfig`; PC e celular na mesma rede Wi-Fi) |
+| Expo Go / physical device   | `http://<your-computer-local-IP>:3000` (e.g. `http://192.168.1.50:3000` — find it with `ipconfig`/`ifconfig`; computer and phone on the same Wi-Fi network) |
 
 ```bash
 cd mobile
 npx expo start
 ```
 
-Abra com **Expo Go** (QR code), tecla `a` (emulador Android) ou `i` (simulador iOS).
+Open with **Expo Go** (QR code), key `a` (Android emulator) or `i` (iOS simulator).
 
 ### 3. Login
 
-Use `ada@ivory.test` (ou `bruno@ivory.test`, `carla@ivory.test`). Qualquer e-mail válido também funciona — o login mock cria o usuário na hora.
+Use `ada@ivory.test` (or `bruno@ivory.test`, `carla@ivory.test`). Any valid email also works — the mock login creates the user on the fly.
 
 ## API
 
-| Método | Endpoint                      | Auth            | Descrição |
+| Method | Endpoint                      | Auth            | Description |
 |--------|-------------------------------|-----------------|-----------|
-| POST   | `/v1/auth/login`              | —               | Login mock via e-mail. Retorna `accessToken` (`mock-token-<userId>`) e `user`. |
-| GET    | `/v1/feed?limit=3&cursor=...` | opcional        | Feed ordenada (mais recente primeiro), cursor pagination, `limit` máx 20. Itens com `likedByMe`, `likesCount`, `commentsCount`. |
-| POST   | `/v1/posts/:postId/like`      | Bearer          | Like **idempotente** (chamada dupla não duplica). 404 se post inexistente. |
-| DELETE | `/v1/posts/:postId/like`      | Bearer          | Unlike **idempotente** (chamada dupla permanece coerente). |
-| GET    | `/v1/posts/:postId/comments`  | —               | Lista comentários. 404 se post inexistente. |
-| POST   | `/v1/posts/:postId/comments`  | Bearer          | Cria comentário (não vazio, máx 500 chars). Retorna `comment` + `commentsCount`. |
+| POST   | `/v1/auth/login`              | —               | Mock login via email. Returns `accessToken` (`mock-token-<userId>`) and `user`. |
+| GET    | `/v1/feed?limit=3&cursor=...` | optional        | Ordered feed (newest first), cursor pagination, `limit` max 20. Items carry `likedByMe`, `likesCount`, `commentsCount`. |
+| POST   | `/v1/posts/:postId/like`      | Bearer          | **Idempotent** like (a double call does not duplicate). 404 when the post does not exist. |
+| DELETE | `/v1/posts/:postId/like`      | Bearer          | **Idempotent** unlike (a double call stays consistent). |
+| GET    | `/v1/posts/:postId/comments`  | —               | Lists comments. 404 when the post does not exist. |
+| POST   | `/v1/posts/:postId/comments`  | Bearer          | Creates a comment (non-empty, max 500 chars). Returns `comment` + `commentsCount`. |
 
-Erros padronizados: `{ "error": { "code": "...", "message": "..." } }` — `400` validação, `401` sem token, `404` recurso inexistente.
+Standardized errors: `{ "error": { "code": "...", "message": "..." } }` — `400` validation, `401` missing token, `404` missing resource.
 
-### Curl essenciais
+### Essential curl commands
 
 ```bash
 curl -X POST http://localhost:3000/v1/auth/login \
@@ -89,64 +89,64 @@ curl -X POST http://localhost:3000/v1/posts/post-1/like \
   -H "Authorization: Bearer mock-token-user-1"
 ```
 
-## Testes
+## Tests
 
-### Backend — automatizados (Vitest + Supertest)
+### Backend — automated (Vitest + Supertest)
 
 ```bash
 cd backend
 npm test
 ```
 
-**14 testes** cobrindo:
+**14 tests** covering:
 
-1. **Login mock** — retorna `accessToken` + `user`; 400 para e-mail inválido/ausente; e-mail desconhecido cria usuário.
-2. **Feed** — ordenação decrescente, campos exigidos, paginação completa por cursor sem duplicados/sem buracos, 400 para `limit > 20` e cursor malformado, `likedByMe` refletindo o token.
-3. **Like idempotente** — chamada dupla mantém `likesCount`; 401 sem token; 404 post inexistente.
-4. **Unlike idempotente** — chamada dupla coerente, nunca negativa; não afeta likes de outros usuários.
-5. **Comentários** — criação atualiza `commentsCount`; 400 para vazio e > 500 chars; 404 post inexistente; 401 sem token.
+1. **Mock login** — returns `accessToken` + `user`; 400 for invalid/missing email; unknown email creates a user.
+2. **Feed** — descending ordering, required fields, full cursor pagination with no duplicates/no gaps, 400 for `limit > 20` and malformed cursor, `likedByMe` reflecting the token.
+3. **Idempotent like** — a double call keeps `likesCount`; 401 without token; 404 missing post.
+4. **Idempotent unlike** — a double call stays consistent, never negative; does not affect other users' likes.
+5. **Comments** — creation updates `commentsCount`; 400 for empty and > 500 chars; 404 missing post; 401 without token.
 
-### Mobile — casos manuais documentados
+### Mobile — documented manual test cases
 
-| # | Caso | Passos | Resultado esperado |
+| # | Case | Steps | Expected result |
 |---|------|--------|--------------------|
-| 1 | **Login + feed** | Abrir o app, entrar com `ada@ivory.test` | Token obtido e salvo (AsyncStorage); feed carrega a primeira página com spinner durante o load |
-| 2 | **Like/unlike** | Tocar no ♡ de um post; tocar de novo | UI e count atualizam imediatamente (optimistic update); botão fica pending (sem duplo tap); em erro de API, rollback + banner de erro |
-| 3 | **Comentário** | Abrir 💬 de um post, escrever e enviar | Comentário aparece na lista e o `commentsCount` do feed atualiza |
-| 4 | **Erro comentário vazio** | Abrir 💬, enviar comentário vazio/só espaços | Mensagem "O comentário não pode ser vazio." visível; nenhuma chamada à API |
-| 5 | **Load more** | Rolar até o fim / tocar em "Load more" | Próxima página é anexada sem posts duplicados; ao fim, mensagem "Você chegou ao fim da feed." |
+| 1 | **Login + feed** | Open the app, sign in with `ada@ivory.test` | Token obtained and stored (AsyncStorage); feed loads the first page with a spinner during the load |
+| 2 | **Like/unlike** | Tap the heart on a post; tap it again | UI and count update immediately (optimistic update); button goes pending (no double tap); on API error, rollback + error banner |
+| 3 | **Comment** | Open the comments of a post, write and send | Comment shows up in the list and the post's `commentsCount` updates in the feed |
+| 4 | **Empty comment error** | Open comments, send an empty/whitespace-only comment | "Comment cannot be empty." message visible; no API call made |
+| 5 | **Load more** | Scroll to the end / tap "Load more" | Next page is appended with no duplicated posts; at the end, "You have reached the end of the feed." |
 
-Extras verificáveis: pull-to-refresh recarrega a feed; logout volta ao login; fechar e reabrir o app mantém a sessão; backend desligado mostra erro de feed com botão "Tentar novamente".
+Verifiable extras: pull-to-refresh reloads the feed; sign out goes back to login; closing and reopening the app keeps the session; with the backend down, the feed shows an error with a "Try again" button.
 
-## Scelte tecniche (escolhas técnicas)
+## Technical choices
 
-- **Express 5 + Zod** — validação na borda da API (e-mail, `limit` 1..20, cursor, comentário 1..500 chars) com erros HTTP semânticos e payload padronizado.
-- **Dados em memória com seed determinístico** — 3 usuários, 12 posts, likes e comentários iniciais. Sem banco: o foco do teste é endpoints corretos, idempotência e integração. `resetStore()` isola cada teste automatizado.
-- **Idempotência por construção** — likes são um `Set<userId>` por post; `likesCount` é derivado (`set.size`), nunca um contador incrementado. Like/unlike duplos não causam drift.
-- **Cursor pagination** — cursor opaco `base64url(createdAt|id)` sobre ordenação `createdAt DESC, id DESC`; o desempate por `id` garante páginas sem buracos nem duplicados.
-- **Token mock `mock-token-<userId>`** — exatamente o formato dos exemplos de curl da guia (`Bearer mock-token-user-1`). Sem JWT: autenticação real não é objeto do teste e não há segredos no repo.
-- **Mobile sem libs de estado/navegação** — React Context para auth (token em AsyncStorage, restaurado no boot), estado local por tela, `fetch` nativo com client tipado (`ApiError`). Duas "telas" (Login/Feed) trocadas por condição + modal de comentários: escopo não justifica react-navigation/Redux.
-- **Estados de UI explícitos** — loading inicial, erro com retry, feed vazia, `refreshing`, `loadingMore`, pending por post no like e pending no envio de comentário.
-- **Optimistic update com rollback (extra do enunciado)** — o like atualiza a UI na hora, reconcilia com a resposta do backend e faz rollback com mensagem de erro se a chamada falhar.
+- **Express 5 + Zod** — validation at the API boundary (email, `limit` 1..20, cursor, comment 1..500 chars) with semantic HTTP errors and a standardized payload.
+- **In-memory data with deterministic seed** — 3 users, 12 posts, initial likes and comments. No database: the test focuses on correct endpoints, idempotency and integration. `resetStore()` isolates every automated test.
+- **Idempotency by construction** — likes are a `Set<userId>` per post; `likesCount` is derived (`set.size`), never an incremented counter. Double like/unlike causes no drift.
+- **Cursor pagination** — opaque cursor `base64url(createdAt|id)` over a `createdAt DESC, id DESC` ordering; the `id` tie-break guarantees pages with no gaps and no duplicates.
+- **Mock token `mock-token-<userId>`** — exactly the format of the curl examples in the guide (`Bearer mock-token-user-1`). No JWT: real authentication is not the goal of the test and there are no secrets in the repo.
+- **Mobile without state/navigation libraries** — React Context for auth (token in AsyncStorage, restored on boot), local state per screen, native `fetch` with a typed client (`ApiError`). Two "screens" (Login/Feed) switched by condition + a comments modal: the scope does not justify react-navigation/Redux.
+- **Explicit UI states** — initial loading, error with retry, empty feed, `refreshing`, `loadingMore`, per-post pending on like and pending while sending a comment.
+- **Optimistic update with rollback (the suggested extra)** — the like updates the UI instantly, reconciles with the backend response and rolls back with a visible error message if the call fails.
 
-## Miglioramenti (melhorias futuras)
+## Future improvements
 
-- Banco real (PostgreSQL/SQLite) com migrations e repositórios.
-- Autenticação real (JWT com expiração/refresh) e usuários com senha.
-- Testes do mobile (React Native Testing Library + MSW) e E2E (Maestro/Detox).
-- Paginação de comentários e contagem otimizada para feeds grandes.
-- Logging estruturado (pino), rate limiting e observabilidade.
-- CI (GitHub Actions): typecheck + testes em cada PR.
-- Deploy do backend (Render/Fly.io) e build EAS do app.
+- Real database (PostgreSQL/SQLite) with migrations and repositories.
+- Real authentication (JWT with expiration/refresh) and users with passwords.
+- Mobile tests (React Native Testing Library + MSW) and E2E (Maestro/Detox).
+- Comment pagination and optimized counting for large feeds.
+- Structured logging (pino), rate limiting and observability.
+- CI (GitHub Actions): typecheck + tests on every PR.
+- Backend deploy (Render/Fly.io) and EAS build of the app.
 
-## Uso de AI / internet (dichiarazione)
+## AI / internet usage (declaration)
 
-- Projeto desenvolvido com auxílio de **Claude Code (Anthropic)** como ferramenta de pair programming, seguindo a metodologia **spec-driven (GitHub spec-kit)**: os requisitos dos PDFs do teste foram convertidos em `spec.md`, `plan.md` e `tasks.md` (em `.specify/`) antes da implementação.
-- Documentação oficial consultada: Expo, React Native, Express e Zod.
-- Todo o código foi revisado, executado e validado localmente: 14 testes automatizados do backend passando e endpoints verificados via curl.
+- Project developed with the help of **Claude Code (Anthropic)** as a pair-programming tool, following the **spec-driven methodology (GitHub spec-kit)**: the requirements from the test PDFs were converted into `spec.md`, `plan.md` and `tasks.md` (in `.specify/`) before implementation.
+- Official documentation consulted: Expo, React Native, Express and Zod.
+- All the code was reviewed, executed and validated locally: 14 backend automated tests passing and endpoints verified via curl.
 
-## Limites conhecidos
+## Known limitations
 
-- Dados em memória: reiniciar o backend restaura o seed (likes/comentários criados são perdidos).
-- `authorId` é exibido no lugar do nome do autor no feed (a API de feed não expande o autor — decisão de escopo).
-- Sem testes automatizados do mobile (casos manuais documentados acima, conforme permitido pelo enunciado).
+- In-memory data: restarting the backend restores the seed (created likes/comments are lost).
+- `authorId` is shown instead of the author's name in the feed (the feed API does not expand the author — a scope decision).
+- No automated mobile tests (manual cases documented above, as allowed by the test instructions).

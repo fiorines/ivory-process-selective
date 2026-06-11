@@ -40,7 +40,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     });
   } catch {
     throw new ApiError(
-      'Não foi possível conectar ao backend. Verifique se ele está rodando e se a API_BASE_URL está correta para o seu emulador/device.',
+      'Could not reach the backend. Check that it is running and that API_BASE_URL is correct for your emulator/device.',
       0,
       'NETWORK_ERROR',
     );
@@ -51,7 +51,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     | null;
 
   if (!response.ok) {
-    const message = data?.error?.message ?? `Erro HTTP ${response.status}`;
+    const message = data?.error?.message ?? `HTTP error ${response.status}`;
     const code = data?.error?.code ?? 'UNKNOWN_ERROR';
     throw new ApiError(message, response.status, code);
   }

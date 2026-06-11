@@ -20,19 +20,19 @@ export function createApp(): express.Express {
   app.use('/v1/feed', feedRouter);
   app.use('/v1/posts', postsRouter);
 
-  // 404 para rotas desconhecidas
+  // 404 for unknown routes
   app.use((_req, res) => {
-    res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Rota não encontrada.' } });
+    res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Route not found.' } });
   });
 
-  // Error handler: JSON malformado → 400; resto → 500
+  // Error handler: malformed JSON -> 400; everything else -> 500
   app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
     if (err instanceof SyntaxError && 'body' in err) {
-      res.status(400).json({ error: { code: 'INVALID_JSON', message: 'JSON do body malformado.' } });
+      res.status(400).json({ error: { code: 'INVALID_JSON', message: 'Malformed JSON body.' } });
       return;
     }
     console.error(err);
-    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'Erro interno do servidor.' } });
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'Internal server error.' } });
   });
 
   return app;

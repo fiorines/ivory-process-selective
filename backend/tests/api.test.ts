@@ -13,7 +13,7 @@ beforeEach(() => {
 });
 
 describe('POST /v1/auth/login', () => {
-  it('faz login mock com e-mail e retorna accessToken + user (Teste 1)', async () => {
+  it('performs mock login via email and returns accessToken + user (Test 1)', async () => {
     const res = await request(app)
       .post('/v1/auth/login')
       .send({ email: 'ada@ivory.test' });
@@ -23,8 +23,8 @@ describe('POST /v1/auth/login', () => {
     expect(res.body.user).toMatchObject({ id: 'user-1', email: 'ada@ivory.test' });
   });
 
-  it('retorna 400 para e-mail inválido ou ausente', async () => {
-    const invalid = await request(app).post('/v1/auth/login').send({ email: 'nao-e-email' });
+  it('returns 400 for an invalid or missing email', async () => {
+    const invalid = await request(app).post('/v1/auth/login').send({ email: 'not-an-email' });
     expect(invalid.status).toBe(400);
     expect(invalid.body.error.code).toBe('INVALID_EMAIL');
 
@@ -32,15 +32,15 @@ describe('POST /v1/auth/login', () => {
     expect(missing.status).toBe(400);
   });
 
-  it('cria usuário mock para e-mail desconhecido (login sempre funciona)', async () => {
-    const res = await request(app).post('/v1/auth/login').send({ email: 'novo@ivory.test' });
+  it('creates a mock user for an unknown email (login always works)', async () => {
+    const res = await request(app).post('/v1/auth/login').send({ email: 'new@ivory.test' });
     expect(res.status).toBe(200);
     expect(res.body.accessToken).toBe(`mock-token-${res.body.user.id}`);
   });
 });
 
 describe('GET /v1/feed', () => {
-  it('retorna feed ordenada (mais recente primeiro) com os campos exigidos (Teste 2)', async () => {
+  it('returns the feed ordered (newest first) with the required fields (Test 2)', async () => {
     const res = await request(app).get('/v1/feed?limit=3');
 
     expect(res.status).toBe(200);
@@ -48,7 +48,7 @@ describe('GET /v1/feed', () => {
     expect(body.items).toHaveLength(3);
     expect(body.nextCursor).not.toBeNull();
 
-    // post-12 é o mais recente do seed
+    // post-12 is the most recent seed post
     expect(body.items[0]).toMatchObject({
       id: 'post-12',
       likesCount: 2,
@@ -65,7 +65,7 @@ describe('GET /v1/feed', () => {
     expect([...dates].sort().reverse()).toEqual(dates);
   });
 
-  it('pagina por cursor até o fim sem duplicados e sem buracos', async () => {
+  it('paginates by cursor to the end with no duplicates and no gaps', async () => {
     const seen: FeedItem[] = [];
     let cursor: string | null = null;
     let pages = 0;
@@ -84,7 +84,7 @@ describe('GET /v1/feed', () => {
     expect(new Set(seen.map((p) => p.id)).size).toBe(TOTAL_SEED_POSTS);
   });
 
-  it('rejeita limit acima de 20 e cursor malformado com 400', async () => {
+  it('rejects limit above 20 and a malformed cursor with 400', async () => {
     const tooBig = await request(app).get('/v1/feed?limit=21');
     expect(tooBig.status).toBe(400);
 
@@ -93,8 +93,8 @@ describe('GET /v1/feed', () => {
     expect(badCursor.body.error.code).toBe('INVALID_CURSOR');
   });
 
-  it('likedByMe reflete o usuário autenticado', async () => {
-    // seed: user-1 curtiu post-11
+  it('likedByMe reflects the authenticated user', async () => {
+    // seed: user-1 liked post-11
     const res = await request(app)
       .get('/v1/feed?limit=5')
       .set('Authorization', `Bearer ${ADA_TOKEN}`);
@@ -108,7 +108,7 @@ describe('GET /v1/feed', () => {
 });
 
 describe('POST /v1/posts/:postId/like', () => {
-  it('é idempotente: chamada dupla não duplica o like (Teste 3)', async () => {
+  it('is idempotent: a double call does not duplicate the like (Test 3)', async () => {
     const first = await request(app)
       .post('/v1/posts/post-1/like')
       .set('Authorization', `Bearer ${ADA_TOKEN}`);
@@ -122,13 +122,13 @@ describe('POST /v1/posts/:postId/like', () => {
     expect(second.body).toMatchObject({ postId: 'post-1', likedByMe: true, likesCount: 1 });
   });
 
-  it('exige autenticação (401) e retorna 404 para post inexistente', async () => {
+  it('requires authentication (401) and returns 404 for a missing post', async () => {
     const noToken = await request(app).post('/v1/posts/post-1/like');
     expect(noToken.status).toBe(401);
 
     const badToken = await request(app)
       .post('/v1/posts/post-1/like')
-      .set('Authorization', 'Bearer token-qualquer');
+      .set('Authorization', 'Bearer some-token');
     expect(badToken.status).toBe(401);
 
     const notFound = await request(app)
@@ -140,7 +140,7 @@ describe('POST /v1/posts/:postId/like', () => {
 });
 
 describe('DELETE /v1/posts/:postId/like', () => {
-  it('é idempotente: chamada dupla permanece coerente, nunca negativa (Teste 4)', async () => {
+  it('is idempotent: a double call stays consistent, never negative (Test 4)', async () => {
     await request(app).post('/v1/posts/post-1/like').set('Authorization', `Bearer ${ADA_TOKEN}`);
 
     const first = await request(app)
@@ -156,8 +156,8 @@ describe('DELETE /v1/posts/:postId/like', () => {
     expect(second.body).toMatchObject({ postId: 'post-1', likedByMe: false, likesCount: 0 });
   });
 
-  it('não remove o like de outros usuários', async () => {
-    // seed: post-12 tem likes de user-2 e user-3
+  it('does not remove likes from other users', async () => {
+    // seed: post-12 has likes from user-2 and user-3
     const res = await request(app)
       .delete('/v1/posts/post-12/like')
       .set('Authorization', `Bearer ${ADA_TOKEN}`);
@@ -167,27 +167,27 @@ describe('DELETE /v1/posts/:postId/like', () => {
 });
 
 describe('GET/POST /v1/posts/:postId/comments', () => {
-  it('cria comentário e atualiza commentsCount (Teste 5)', async () => {
+  it('creates a comment and updates commentsCount (Test 5)', async () => {
     const created = await request(app)
       .post('/v1/posts/post-1/comments')
       .set('Authorization', `Bearer ${ADA_TOKEN}`)
-      .send({ body: 'Primeiro comentário!' });
+      .send({ body: 'First comment!' });
 
     expect(created.status).toBe(201);
     expect(created.body.comment).toMatchObject({
       postId: 'post-1',
       authorId: 'user-1',
-      body: 'Primeiro comentário!',
+      body: 'First comment!',
     });
     expect(created.body.commentsCount).toBe(1);
 
     const list = await request(app).get('/v1/posts/post-1/comments');
     expect(list.status).toBe(200);
     expect(list.body.commentsCount).toBe(1);
-    expect(list.body.items[0].body).toBe('Primeiro comentário!');
+    expect(list.body.items[0].body).toBe('First comment!');
   });
 
-  it('rejeita comentário vazio e acima de 500 caracteres com 400', async () => {
+  it('rejects an empty comment and one above 500 characters with 400', async () => {
     const empty = await request(app)
       .post('/v1/posts/post-1/comments')
       .set('Authorization', `Bearer ${ADA_TOKEN}`)
@@ -202,19 +202,19 @@ describe('GET/POST /v1/posts/:postId/comments', () => {
     expect(tooLong.status).toBe(400);
   });
 
-  it('retorna 404 para post inexistente (GET e POST) e 401 sem token no POST', async () => {
+  it('returns 404 for a missing post (GET and POST) and 401 without a token on POST', async () => {
     const getMissing = await request(app).get('/v1/posts/post-999/comments');
     expect(getMissing.status).toBe(404);
 
     const postMissing = await request(app)
       .post('/v1/posts/post-999/comments')
       .set('Authorization', `Bearer ${ADA_TOKEN}`)
-      .send({ body: 'olá' });
+      .send({ body: 'hello' });
     expect(postMissing.status).toBe(404);
 
     const noToken = await request(app)
       .post('/v1/posts/post-1/comments')
-      .send({ body: 'olá' });
+      .send({ body: 'hello' });
     expect(noToken.status).toBe(401);
   });
 });

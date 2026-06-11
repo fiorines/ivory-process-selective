@@ -6,8 +6,8 @@ export interface AuthedRequest extends Request {
 }
 
 /**
- * Token mock no formato `mock-token-<userId>` (ex.: `Bearer mock-token-user-1`),
- * exatamente como nos exemplos de curl da guia do teste.
+ * Mock token in the format `mock-token-<userId>` (e.g. `Bearer mock-token-user-1`),
+ * exactly as in the curl examples of the test guide.
  */
 function extractUserId(authorizationHeader: string | undefined): string | null {
   if (!authorizationHeader) return null;
@@ -22,12 +22,12 @@ function extractUserId(authorizationHeader: string | undefined): string | null {
   return getUserById(userId) ? userId : null;
 }
 
-/** Rotas protegidas: 401 se o token estiver ausente ou for inválido. */
+/** Protected routes: 401 when the token is missing or invalid. */
 export function requireAuth(req: AuthedRequest, res: Response, next: NextFunction): void {
   const userId = extractUserId(req.header('authorization'));
   if (!userId) {
     res.status(401).json({
-      error: { code: 'UNAUTHORIZED', message: 'Token ausente ou inválido. Use: Authorization: Bearer mock-token-<userId>.' },
+      error: { code: 'UNAUTHORIZED', message: 'Missing or invalid token. Use: Authorization: Bearer mock-token-<userId>.' },
     });
     return;
   }
@@ -35,7 +35,7 @@ export function requireAuth(req: AuthedRequest, res: Response, next: NextFunctio
   next();
 }
 
-/** Feed: auth opcional — com token válido, likedByMe reflete o usuário; sem token, false. */
+/** Feed: optional auth — with a valid token, likedByMe reflects the user; without one, false. */
 export function optionalAuth(req: AuthedRequest, _res: Response, next: NextFunction): void {
   const userId = extractUserId(req.header('authorization'));
   if (userId) req.userId = userId;

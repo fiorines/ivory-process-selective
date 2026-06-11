@@ -20,21 +20,21 @@ const SEED_USERS: User[] = [
 ];
 
 const POST_BODIES = [
-  'Benvenuti nel mini feed Ivory! Primo post di prova.',
-  'Cursor pagination é mais estável que offset quando o feed recebe novos posts.',
-  'Dica TypeScript: habilite strict mode desde o primeiro dia.',
-  'Idempotência: a mesma requisição repetida deve produzir o mesmo estado.',
-  'Expo facilita muito o desenvolvimento React Native sem configurar Xcode/Android Studio.',
-  'Hoje estudei optimistic updates com rollback. UI instantânea, consistência garantida.',
-  'Helmet + CORS configurados: o básico de segurança de uma API HTTP.',
-  'Zod valida o input na borda da API e os tipos fluem para o resto do código.',
-  'FlatList com onEndReached é a forma idiomática de fazer infinite scroll em RN.',
-  'Testes com Vitest + Supertest rodam rápido e não precisam de servidor real.',
-  'AsyncStorage guarda o token mock: sessão sobrevive ao fechar o app.',
-  'Último post do seed: use o Load more para navegar até aqui!',
+  'Welcome to the Ivory mini feed! First seed post.',
+  'Cursor pagination is more stable than offset when new posts keep arriving.',
+  'TypeScript tip: enable strict mode from day one.',
+  'Idempotency: repeating the same request must produce the same state.',
+  'Expo makes React Native development much easier - no Xcode/Android Studio setup.',
+  'Today I studied optimistic updates with rollback. Instant UI, guaranteed consistency.',
+  'Helmet + CORS configured: the security basics of an HTTP API.',
+  'Zod validates input at the API boundary and the types flow through the rest of the code.',
+  'FlatList with onEndReached is the idiomatic way to do infinite scroll in RN.',
+  'Tests with Vitest + Supertest run fast and need no real server.',
+  'AsyncStorage keeps the mock token: the session survives closing the app.',
+  'Last seed post: use Load more to navigate all the way here!',
 ];
 
-/** Base fixa para timestamps determinísticos (post-12 é o mais recente). */
+/** Fixed base for deterministic timestamps (post-12 is the most recent). */
 const SEED_BASE_TIME = Date.UTC(2026, 5, 9, 12, 0, 0); // 2026-06-09T12:00:00Z
 
 function seed(): void {
@@ -60,16 +60,16 @@ function seed(): void {
     store.posts.set(post.id, post);
   });
 
-  // Likes iniciais (counts variados na primeira página do feed)
+  // Initial likes (varied counts on the first feed page)
   store.posts.get('post-12')!.likedBy.add('user-2');
   store.posts.get('post-12')!.likedBy.add('user-3');
   store.posts.get('post-11')!.likedBy.add('user-1');
   store.posts.get('post-9')!.likedBy.add('user-2');
 
-  // Comentários iniciais
-  addComment('post-12', 'user-2', 'Ótimo post para abrir o feed!');
-  addComment('post-12', 'user-3', 'Concordo, muito útil.');
-  addComment('post-10', 'user-1', 'Vitest é realmente rápido.');
+  // Initial comments
+  addComment('post-12', 'user-2', 'Great post to open the feed!');
+  addComment('post-12', 'user-3', 'Agreed, very useful.');
+  addComment('post-10', 'user-1', 'Vitest really is fast.');
 }
 
 export function resetStore(): void {
@@ -84,7 +84,7 @@ export function getUserByEmail(email: string): User | undefined {
   return store.usersByEmail.get(email);
 }
 
-/** Login mock sempre funciona: e-mails desconhecidos criam um novo usuário. */
+/** Mock login always works: unknown emails create a new user on the fly. */
 export function findOrCreateUser(email: string): User {
   const existing = store.usersByEmail.get(email);
   if (existing) return existing;
@@ -104,7 +104,7 @@ export function getPost(postId: string): Post | undefined {
   return store.posts.get(postId);
 }
 
-/** Posts ordenados por createdAt DESC, desempate por id DESC (ordem total estável). */
+/** Posts ordered by createdAt DESC, tie-broken by id DESC (stable total order). */
 export function listPostsSorted(): Post[] {
   return [...store.posts.values()].sort((a, b) => {
     if (a.createdAt !== b.createdAt) return a.createdAt < b.createdAt ? 1 : -1;
@@ -114,7 +114,7 @@ export function listPostsSorted(): Post[] {
 
 export function addComment(postId: string, authorId: string, body: string): Comment {
   const post = store.posts.get(postId);
-  if (!post) throw new Error(`Post inexistente: ${postId}`);
+  if (!post) throw new Error(`Post not found: ${postId}`);
 
   const comment: Comment = {
     id: uuidv4(),

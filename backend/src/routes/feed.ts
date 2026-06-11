@@ -9,10 +9,10 @@ const MAX_LIMIT = 20;
 
 const querySchema = z.object({
   limit: z.coerce
-    .number({ message: 'limit deve ser um número.' })
-    .int('limit deve ser inteiro.')
-    .min(1, 'limit mínimo é 1.')
-    .max(MAX_LIMIT, `limit máximo é ${MAX_LIMIT}.`)
+    .number({ message: 'limit must be a number.' })
+    .int('limit must be an integer.')
+    .min(1, 'minimum limit is 1.')
+    .max(MAX_LIMIT, `maximum limit is ${MAX_LIMIT}.`)
     .default(DEFAULT_LIMIT),
   cursor: z.string().min(1).optional(),
 });
@@ -22,7 +22,7 @@ interface CursorPayload {
   id: string;
 }
 
-/** Cursor opaco: base64url de `createdAt|id` do último item da página anterior. */
+/** Opaque cursor: base64url of `createdAt|id` of the last item of the previous page. */
 function encodeCursor(post: Post): string {
   return Buffer.from(`${post.createdAt}|${post.id}`, 'utf8').toString('base64url');
 }
@@ -43,7 +43,7 @@ function decodeCursor(cursor: string): CursorPayload | null {
   }
 }
 
-/** true se `post` vem estritamente depois do cursor na ordenação DESC (createdAt, id). */
+/** true when `post` comes strictly after the cursor in the DESC (createdAt, id) ordering. */
 function isAfterCursor(post: Post, cursor: CursorPayload): boolean {
   if (post.createdAt !== cursor.createdAt) return post.createdAt < cursor.createdAt;
   return post.id < cursor.id;
@@ -51,12 +51,12 @@ function isAfterCursor(post: Post, cursor: CursorPayload): boolean {
 
 export const feedRouter = Router();
 
-/** GET /v1/feed?limit=3&cursor=... — feed ordenada com cursor pagination. */
+/** GET /v1/feed?limit=3&cursor=... — ordered feed with cursor pagination. */
 feedRouter.get('/', optionalAuth, (req: AuthedRequest, res) => {
   const parsed = querySchema.safeParse(req.query);
   if (!parsed.success) {
     res.status(400).json({
-      error: { code: 'INVALID_QUERY', message: parsed.error.issues[0]?.message ?? 'Query inválida.' },
+      error: { code: 'INVALID_QUERY', message: parsed.error.issues[0]?.message ?? 'Invalid query.' },
     });
     return;
   }
@@ -68,7 +68,7 @@ feedRouter.get('/', optionalAuth, (req: AuthedRequest, res) => {
     const payload = decodeCursor(cursor);
     if (!payload) {
       res.status(400).json({
-        error: { code: 'INVALID_CURSOR', message: 'cursor malformado.' },
+        error: { code: 'INVALID_CURSOR', message: 'malformed cursor.' },
       });
       return;
     }

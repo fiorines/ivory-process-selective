@@ -23,7 +23,7 @@ export function LoginScreen() {
 
     const trimmed = email.trim();
     if (!trimmed) {
-      setError('Informe um e-mail.');
+      setError('Please enter an email.');
       return;
     }
 
@@ -32,7 +32,7 @@ export function LoginScreen() {
     try {
       await login(trimmed);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Erro inesperado ao fazer login.');
+      setError(err instanceof ApiError ? err.message : 'Unexpected error while signing in.');
     } finally {
       setSubmitting(false);
     }
@@ -45,7 +45,7 @@ export function LoginScreen() {
     >
       <View style={styles.card}>
         <Text style={styles.title}>Ivory Mini Feed</Text>
-        <Text style={styles.subtitle}>Entre com seu e-mail (login mock)</Text>
+        <Text style={styles.subtitle}>Sign in with your email (mock login)</Text>
 
         <TextInput
           style={styles.input}
@@ -74,11 +74,11 @@ export function LoginScreen() {
           {submitting ? (
             <ActivityIndicator color="#ffffff" />
           ) : (
-            <Text style={styles.buttonText}>Entrar</Text>
+            <Text style={styles.buttonText}>Sign in</Text>
           )}
         </TouchableOpacity>
 
-        <Text style={styles.hint}>Usuários seed: ada@ivory.test, bruno@ivory.test, carla@ivory.test</Text>
+        <Text style={styles.hint}>Seed users: ada@ivory.test, bruno@ivory.test, carla@ivory.test</Text>
       </View>
     </KeyboardAvoidingView>
   );

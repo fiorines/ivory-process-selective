@@ -1,70 +1,70 @@
 # Constitution — Ivory Mini Feed (React Native + Backend)
 
-## Princípios do Projeto
+## Project Principles
 
-### 1. Stack exigida pelo teste técnico
+### 1. Stack required by the technical test
 
-**Escolha:** Backend em Node.js + TypeScript (Express). Mobile em React Native + TypeScript com Expo.
+**Choice:** Backend in Node.js + TypeScript (Express). Mobile in React Native + TypeScript with Expo.
 
-**Justificativa:**
-- O enunciado do teste exige explicitamente Node.js + TypeScript no backend e React Native + TypeScript no mobile, "preferibilmente Expo".
-- Express é o framework HTTP mais consolidado do ecossistema Node, com tipagem madura (`@types/express`).
-- Expo elimina configuração nativa (Xcode/Android Studio) e permite rodar via Expo Go, emulador Android ou simulador iOS.
+**Rationale:**
+- The test statement explicitly requires Node.js + TypeScript on the backend and React Native + TypeScript on mobile, "preferably Expo".
+- Express is the most established HTTP framework in the Node ecosystem, with mature typings (`@types/express`).
+- Expo removes native configuration (Xcode/Android Studio) and allows running via Expo Go, Android emulator or iOS simulator.
 
-### 2. Armazenamento em memória (sem banco de dados)
+### 2. In-memory storage (no database)
 
-**Escolha:** Estruturas de dados em memória (Maps/arrays) com seed determinístico no boot.
+**Choice:** In-memory data structures (Maps/arrays) with a deterministic seed at boot.
 
-**Justificativa:**
-- O teste é um "task reale semplificato" com 5–6 horas de trabalho recomendadas; um banco real adicionaria custo de setup sem agregar ao que é avaliado (endpoints corretos, idempotência, erros, modelo de dados).
-- Seed determinístico garante que os testes automatizados e os exemplos de `curl` do enunciado funcionem sempre.
-- Trade-off aceito: dados são perdidos ao reiniciar — documentado no README como melhoria futura (DB real + migrations).
+**Rationale:**
+- The test is a "simplified real task" with 5–6 recommended working hours; a real database would add setup cost without adding to what is evaluated (correct endpoints, idempotency, errors, data model).
+- A deterministic seed guarantees that the automated tests and the `curl` examples from the statement always work.
+- Accepted trade-off: data is lost on restart — documented in the README as a future improvement (real DB + migrations).
 
-### 3. Autenticação mock por Bearer token
+### 3. Mock authentication via Bearer token
 
-**Escolha:** Login mock por e-mail que retorna `accessToken` no formato `mock-token-<userId>`; middleware valida `Authorization: Bearer <token>`.
+**Choice:** Mock login via email returning an `accessToken` in the format `mock-token-<userId>`; a middleware validates `Authorization: Bearer <token>`.
 
-**Justificativa:**
-- O enunciado pede "login mock via email" e os exemplos de `curl` usam `Bearer mock-token-user-1` — o formato do token segue exatamente a guia oficial do teste.
-- Sem JWT/criptografia real: não é objeto de avaliação e não há segredos no repositório (requisito do checklist de entrega).
+**Rationale:**
+- The statement asks for "mock login via email" and the `curl` examples use `Bearer mock-token-user-1` — the token format follows the official test guide exactly.
+- No JWT/real cryptography: it is not what is being evaluated and there are no secrets in the repository (a delivery-checklist requirement).
 
-### 4. Idempotência de like/unlike
+### 4. Like/unlike idempotency
 
-**Escolha:** Likes modelados como `Set<userId>` por post.
+**Choice:** Likes modeled as a `Set<userId>` per post.
 
-**Justificativa:**
-- `Set.add`/`Set.delete` são naturalmente idempotentes: chamada dupla de like não duplica, chamada dupla de unlike permanece coerente — requisito central do teste.
-- `likesCount` é derivado (`set.size`), nunca um contador incrementado, eliminando qualquer possibilidade de drift.
+**Rationale:**
+- `Set.add`/`Set.delete` are naturally idempotent: a double like call does not duplicate, a double unlike call stays consistent — the central requirement of the test.
+- `likesCount` is derived (`set.size`), never an incremented counter, eliminating any possibility of drift.
 
-### 5. Paginação por cursor
+### 5. Cursor pagination
 
-**Escolha:** Cursor opaco (base64 de `createdAt|id`) sobre feed ordenada por `createdAt` decrescente, `limit` padrão 10 e máximo 20.
+**Choice:** Opaque cursor (base64 of `createdAt|id`) over a feed ordered by `createdAt` descending, default `limit` 10 and maximum 20.
 
-**Justificativa:**
-- O enunciado exige cursor pagination com `limit` máximo 20.
-- Cursor composto (`createdAt` + `id` como desempate) evita itens pulados ou duplicados entre páginas — verificado em teste automatizado.
+**Rationale:**
+- The statement requires cursor pagination with a maximum `limit` of 20.
+- A composite cursor (`createdAt` + `id` as tie-break) avoids skipped or duplicated items between pages — verified by an automated test.
 
-### 6. Estado e UI no mobile
+### 6. State and UI on mobile
 
-**Escolha:** React Context para autenticação (token persistido em AsyncStorage), estado local por tela, `FlatList` com "Load more", optimistic update com rollback no like.
+**Choice:** React Context for authentication (token persisted in AsyncStorage), local state per screen, `FlatList` with "Load more", optimistic update with rollback on like.
 
-**Justificativa:**
-- O escopo não justifica Redux/React Query; Context + hooks mantêm o código legível e a separação de responsabilidades clara (api client / contexto / telas / componentes).
-- O enunciado lista explicitamente os estados exigidos: loading do feed, erro do feed, feed vazia, pending durante like/comentário — todos modelados de forma explícita.
-- Optimistic update com rollback é o "extra" sugerido no enunciado e foi implementado.
+**Rationale:**
+- The scope does not justify Redux/React Query; Context + hooks keep the code readable and the separation of concerns clear (api client / context / screens / components).
+- The statement explicitly lists the required states: feed loading, feed error, empty feed, pending during like/comment — all modeled explicitly.
+- Optimistic update with rollback is the "extra" suggested in the statement and was implemented.
 
-## Padrões de Qualidade
+## Quality Standards
 
-- TypeScript estrito (`strict: true`) no backend e no mobile
-- Validação de entrada com Zod no backend (e-mail válido, comentário não vazio ≤ 500 chars)
-- Erros HTTP semânticos: 400 validação, 401 sem token, 404 recurso inexistente
-- Respostas de erro padronizadas: `{ "error": { "code", "message" } }`
-- Testes automatizados do backend com Vitest + Supertest (≥ 5)
-- Casos de teste manuais do mobile documentados no README (≥ 4)
-- Sem `node_modules` e sem segredos no repositório
+- Strict TypeScript (`strict: true`) on both backend and mobile
+- Input validation with Zod on the backend (valid email, non-empty comment ≤ 500 chars)
+- Semantic HTTP errors: 400 validation, 401 missing token, 404 missing resource
+- Standardized error responses: `{ "error": { "code", "message" } }`
+- Automated backend tests with Vitest + Supertest (≥ 5)
+- Documented manual mobile test cases in the README (≥ 4)
+- No `node_modules` and no secrets in the repository
 
-## Governança
+## Governance
 
-- Specs em `.specify/specs/mini-feed/` são a fonte da verdade dos requisitos
-- Commits seguem Conventional Commits (feat:, fix:, docs:, test:)
-- Entrega em até 24h da recepção do e-mail; pendências documentadas no README
+- Specs in `.specify/specs/mini-feed/` are the source of truth for the requirements
+- Commits follow Conventional Commits (feat:, fix:, docs:, test:)
+- Delivery within 24h of receiving the email; pending items documented in the README

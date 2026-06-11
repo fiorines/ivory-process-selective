@@ -20,7 +20,7 @@ const MAX_COMMENT_LENGTH = 500;
 interface CommentsModalProps {
   post: FeedItem | null;
   onClose: () => void;
-  /** Sincroniza o commentsCount do post no feed após criar um comentário. */
+  /** Keeps the post's commentsCount in the feed in sync after creating a comment. */
   onCommentsCountChange: (postId: string, commentsCount: number) => void;
 }
 
@@ -40,7 +40,7 @@ export function CommentsModal({ post, onClose, onCommentsCountChange }: Comments
       const response = await api.getComments(postId);
       setComments(response.items);
     } catch (err) {
-      setLoadError(err instanceof ApiError ? err.message : 'Erro ao carregar comentários.');
+      setLoadError(err instanceof ApiError ? err.message : 'Failed to load comments.');
     } finally {
       setLoading(false);
     }
@@ -60,11 +60,11 @@ export function CommentsModal({ post, onClose, onCommentsCountChange }: Comments
 
     const body = draft.trim();
     if (body.length === 0) {
-      setSubmitError('O comentário não pode ser vazio.');
+      setSubmitError('Comment cannot be empty.');
       return;
     }
     if (body.length > MAX_COMMENT_LENGTH) {
-      setSubmitError(`Máximo de ${MAX_COMMENT_LENGTH} caracteres.`);
+      setSubmitError(`Maximum of ${MAX_COMMENT_LENGTH} characters.`);
       return;
     }
 
@@ -76,7 +76,7 @@ export function CommentsModal({ post, onClose, onCommentsCountChange }: Comments
       setDraft('');
       onCommentsCountChange(post.id, response.commentsCount);
     } catch (err) {
-      setSubmitError(err instanceof ApiError ? err.message : 'Erro ao enviar comentário.');
+      setSubmitError(err instanceof ApiError ? err.message : 'Failed to send the comment.');
     } finally {
       setSubmitting(false);
     }
@@ -91,16 +91,16 @@ export function CommentsModal({ post, onClose, onCommentsCountChange }: Comments
         >
           <View style={styles.sheet}>
             <View style={styles.sheetHeader}>
-              <Text style={styles.sheetTitle}>Comentários{post ? ` — ${post.id}` : ''}</Text>
+              <Text style={styles.sheetTitle}>Comments{post ? ` — ${post.id}` : ''}</Text>
               <TouchableOpacity onPress={onClose} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                <Text style={styles.closeText}>Fechar ✕</Text>
+                <Text style={styles.closeText}>Close ✕</Text>
               </TouchableOpacity>
             </View>
 
             {loading && (
               <View style={styles.centerBox}>
                 <ActivityIndicator color="#60a5fa" />
-                <Text style={styles.mutedText}>Carregando comentários…</Text>
+                <Text style={styles.mutedText}>Loading comments…</Text>
               </View>
             )}
 
@@ -111,7 +111,7 @@ export function CommentsModal({ post, onClose, onCommentsCountChange }: Comments
                   style={styles.retryButton}
                   onPress={() => post && loadComments(post.id)}
                 >
-                  <Text style={styles.retryText}>Tentar novamente</Text>
+                  <Text style={styles.retryText}>Try again</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -122,7 +122,7 @@ export function CommentsModal({ post, onClose, onCommentsCountChange }: Comments
                 keyExtractor={(item) => item.id}
                 style={styles.list}
                 ListEmptyComponent={
-                  <Text style={styles.mutedText}>Nenhum comentário ainda. Seja o primeiro!</Text>
+                  <Text style={styles.mutedText}>No comments yet. Be the first!</Text>
                 }
                 renderItem={({ item }) => (
                   <View style={styles.comment}>
@@ -143,7 +143,7 @@ export function CommentsModal({ post, onClose, onCommentsCountChange }: Comments
                   setDraft(text);
                   setSubmitError(null);
                 }}
-                placeholder="Escreva um comentário…"
+                placeholder="Write a comment…"
                 placeholderTextColor="#6b7280"
                 editable={!submitting}
                 maxLength={MAX_COMMENT_LENGTH + 50}
@@ -158,7 +158,7 @@ export function CommentsModal({ post, onClose, onCommentsCountChange }: Comments
                 {submitting ? (
                   <ActivityIndicator size="small" color="#ffffff" />
                 ) : (
-                  <Text style={styles.sendText}>Enviar</Text>
+                  <Text style={styles.sendText}>Send</Text>
                 )}
               </TouchableOpacity>
             </View>
